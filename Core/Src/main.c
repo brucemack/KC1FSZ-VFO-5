@@ -26,9 +26,11 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ssd1306.h"
 #include "si5351.h"
+#include "Rotary.h"
 
 /* USER CODE END Includes */
 
@@ -52,6 +54,8 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+
+int pos;
 
 /* USER CODE END PV */
 
@@ -135,16 +139,43 @@ int main(void)
 
   ssd1306_UpdateScreen();
 
-  printf("Hello Izzy!\n");
-
   /* USER CODE END 2 */
- 
  
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+  {	/*
+	  long now = HAL_GetTick();
+	  if (!HAL_GPIO_ReadPin(ENC0_GPIO_Port, ENC0_Pin)) {
+		  if (now - lastMove > 20) {
+			  lastMove = now;
+			  if (HAL_GPIO_ReadPin(ENC1_GPIO_Port, ENC1_Pin)) {
+				  pos++;
+			  } else {
+				  pos--;
+			  }
+			  char buf[32];
+			  sprintf(buf,"%03d",pos);
+			  ssd1306_SetCursor(0, 40);
+			  ssd1306_WriteString(buf, Font_11x18, White);
+			  ssd1306_UpdateScreen();
+		  }
+	  }
+	  */
+	int d = Rotary_process();
+	if (d != DIR_NONE) {
+		  if (d == DIR_CW) {
+			  pos++;
+		  } else if (d == DIR_CCW) {
+			  pos--;
+		  }
+		  char buf[32];
+		  sprintf(buf,"%03d",pos);
+		  ssd1306_SetCursor(0, 40);
+		  ssd1306_WriteString(buf, Font_11x18, White);
+		  ssd1306_UpdateScreen();
+	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -280,6 +311,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ENCB_Pin ENC1_Pin ENC0_Pin */
+  GPIO_InitStruct.Pin = ENCB_Pin|ENC1_Pin|ENC0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
