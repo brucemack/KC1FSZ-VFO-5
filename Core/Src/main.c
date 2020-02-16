@@ -55,7 +55,7 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 
-int pos;
+int freq = 72550;
 
 /* USER CODE END PV */
 
@@ -131,8 +131,8 @@ int main(void)
   ssd1306_Fill(Black);
   ssd1306_SetCursor(0, 0);
   ssd1306_WriteString("KC1FSZ", Font_7x10, White);
-  ssd1306_SetCursor(0, 16);
-  ssd1306_WriteString("LSB  7255.5", Font_11x18, White);
+  //ssd1306_SetCursor(0, 16);
+  //ssd1306_WriteString("     7255.5", Font_11x18, White);
 
   for (int x = 0; x < 128; x++)
 	  ssd1306_DrawPixel(x, 12, White);
@@ -145,35 +145,25 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {	/*
-	  long now = HAL_GetTick();
-	  if (!HAL_GPIO_ReadPin(ENC0_GPIO_Port, ENC0_Pin)) {
-		  if (now - lastMove > 20) {
-			  lastMove = now;
-			  if (HAL_GPIO_ReadPin(ENC1_GPIO_Port, ENC1_Pin)) {
-				  pos++;
-			  } else {
-				  pos--;
-			  }
-			  char buf[32];
-			  sprintf(buf,"%03d",pos);
-			  ssd1306_SetCursor(0, 40);
-			  ssd1306_WriteString(buf, Font_11x18, White);
-			  ssd1306_UpdateScreen();
-		  }
-	  }
-	  */
+  {
 	int d = Rotary_process();
 	if (d != DIR_NONE) {
 		  if (d == DIR_CW) {
-			  pos++;
+			  freq += 5;
 		  } else if (d == DIR_CCW) {
-			  pos--;
+			  freq -= 5;
 		  }
+
 		  char buf[32];
-		  sprintf(buf,"%03d",pos);
-		  ssd1306_SetCursor(0, 40);
+		  // Print whole KHz
+		  sprintf(buf,"%5d",freq / 10);
+		  ssd1306_SetCursor(0, 16);
 		  ssd1306_WriteString(buf, Font_11x18, White);
+		  // Print 100Hz increments
+		  sprintf(buf,".%d",freq % 10);
+		  ssd1306_SetCursor(55, 16);
+		  ssd1306_WriteString(buf, Font_11x18, White);
+
 		  ssd1306_UpdateScreen();
 	}
     /* USER CODE END WHILE */
