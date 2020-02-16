@@ -1,15 +1,44 @@
-// 
-// Author: Hans Summers, 2015
-// Website: http://www.hanssummers.com
+// A Si5351/A control library that has been modified to be STM32 compatible.
 //
-// A very very simple Si5351a demonstration
-// using the Si5351a module kit http://www.hanssummers.com/synth
-// Please also refer to SiLabs AN619 which describes all the registers to use
+// Most of this code come from Hans Summers, 2015 (Website: http://www.hanssummers.com)
 //
+#include <stdint.h>
+
 #include "si5351a.h"
 
-// --------------
-#include <stdint.h>
+#define SI_CLK0_CONTROL	16			// Register definitions
+#define SI_CLK1_CONTROL	17
+#define SI_CLK2_CONTROL	18
+#define SI_SYNTH_PLL_A	26
+#define SI_SYNTH_PLL_B	34
+#define SI_SYNTH_MS_0 42
+#define SI_SYNTH_MS_1 50
+#define SI_SYNTH_MS_2 58
+#define SI_PLL_RESET 177
+#define SI_CRYSTAL_INTERNAL_LOAD_CAPACITANCE 183
+
+#define SI_R_DIV_1		0b00000000			// R-division ratio definitions
+#define SI_R_DIV_2		0b00010000
+#define SI_R_DIV_4		0b00100000
+#define SI_R_DIV_8		0b00110000
+#define SI_R_DIV_16		0b01000000
+#define SI_R_DIV_32		0b01010000
+#define SI_R_DIV_64		0b01100000
+#define SI_R_DIV_128		0b01110000
+
+#define SI_CLK_SRC_PLL_A	0b00000000
+#define SI_CLK_SRC_PLL_B	0b00100000
+
+// NOTE: ADAFRUIT BOARD USES 25MHz
+#define XTAL_FREQ	25000000			// Crystal frequency
+
+enum CrystalLoad
+{
+  LOAD_6PF  = (1<<6),
+  LOAD_8PF  = (2<<6),
+  LOAD_10PF = (3<<6)
+};
+
 static uint8_t si5351_dev_addr = 0x60;
 static kc1fsz::I2CInterface* i2cInterface = 0;
 
@@ -19,8 +48,13 @@ void i2cSendRegister(uint8_t addr, uint8_t data) {
 
 void si5351aInit(kc1fsz::I2CInterface* i2c) {
 	i2cInterface = i2c;
+	// Setup crystal load
+	i2cSendRegister(SI_CRYSTAL_INTERNAL_LOAD_CAPACITANCE, CrystalLoad::LOAD_10PF);
+	// Turn off all outputs
+	i2cSendRegister(SI_CLK0_CONTROL, 0x80);
+	i2cSendRegister(SI_CLK1_CONTROL, 0x80);
+	i2cSendRegister(SI_CLK2_CONTROL, 0x80);
 }
-// --------------
 
 //
 // Set up specified PLL with mult, num and denom
@@ -131,7 +165,8 @@ void si5351aSetFrequency(uint32_t frequency)
 									// the parameters, you don't need to reset the PLL, and there is no glitch
 	i2cSendRegister(SI_PLL_RESET, 0xA0);	
 									// Finally switch on the CLK0 output (0x4F)
-									// and set the MultiSynth0 input to be PLL A
+									// and set the MultiSynth0 input to be PLL A [3:2]
+									// 8ma drive [1:0]
 	i2cSendRegister(SI_CLK0_CONTROL, 0x4F | SI_CLK_SRC_PLL_A);
 }
 

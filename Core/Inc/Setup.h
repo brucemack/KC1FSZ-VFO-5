@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 void Setup_init();
+void Setup_loop();
 
 #ifdef __cplusplus
 }

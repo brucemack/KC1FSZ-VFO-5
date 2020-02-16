@@ -28,9 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ssd1306.h"
-#include "si5351.h"
-#include "Rotary.h"
 #include "Setup.h"
 
 /* USER CODE END Includes */
@@ -55,8 +52,6 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
-int freq = 72550;
 
 /* USER CODE END PV */
 
@@ -109,67 +104,13 @@ int main(void)
 
   Setup_init();
 
-  /*
-  // ----- Si5351
-  err_t st = si5351_Init();
-  // Set clock 0 to 16MHz
-  // 25mhz crystal osc * 32 == 800MHz
-  // 800MHz / 50 = 16Mhz
-  si5351_setupPLLInt(SI5351_PLL_A, 32);
-  si5351_setupMultisynthInt(0, SI5351_PLL_A, 50);
-  si5351_setupRdiv(0, SI5351_R_DIV_1);
-
-  // Set clock 2 to 32.768KHz
-  // 25mhz crystal osc * (28 + (7012/390625)) = 700.448768
-  // 700.448768 / (1336 + (0 / 1)) = .524288
-  // .524288 / 16 = .032768 = 32.768KHz
-  si5351_setupPLL(SI5351_PLL_B, 28, 7012, 390625);
-  si5351_setupMultisynth(2, SI5351_PLL_B, 1336, 0, 1);
-  si5351_setupRdiv(2, SI5351_R_DIV_16);
-
-  si5351_enableOutputs(0xFF);
-   */
-  // ----- SD1306 OLED
-  ssd1306_Init();
-  ssd1306_Fill(Black);
-  ssd1306_SetCursor(0, 0);
-  ssd1306_WriteString("KC1FSZ", Font_7x10, White);
-  //ssd1306_SetCursor(0, 16);
-  //ssd1306_WriteString("     7255.5", Font_11x18, White);
-
-  for (int x = 0; x < 128; x++)
-	  ssd1306_DrawPixel(x, 12, White);
-
-  ssd1306_UpdateScreen();
-
   /* USER CODE END 2 */
- 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	int d = Rotary_process();
-	if (d != DIR_NONE) {
-		  if (d == DIR_CW) {
-			  freq += 5;
-		  } else if (d == DIR_CCW) {
-			  freq -= 5;
-		  }
-
-		  char buf[32];
-		  int x = 50;
-		  // Print whole KHz
-		  sprintf(buf,"%5d",freq / 10);
-		  ssd1306_SetCursor(x, 16);
-		  ssd1306_WriteString(buf, Font_11x18, White);
-		  // Print 100Hz increments
-		  sprintf(buf,".%d",freq % 10);
-		  ssd1306_SetCursor(x + 55, 16);
-		  ssd1306_WriteString(buf, Font_11x18, White);
-
-		  ssd1306_UpdateScreen();
-	}
+	  Setup_loop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
