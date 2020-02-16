@@ -31,6 +31,7 @@
 #include "ssd1306.h"
 #include "si5351.h"
 #include "Rotary.h"
+#include "Setup.h"
 
 /* USER CODE END Includes */
 
@@ -106,7 +107,9 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  Setup_init();
 
+  /*
   // ----- Si5351
   err_t st = si5351_Init();
   // Set clock 0 to 16MHz
@@ -125,7 +128,7 @@ int main(void)
   si5351_setupRdiv(2, SI5351_R_DIV_16);
 
   si5351_enableOutputs(0xFF);
-
+   */
   // ----- SD1306 OLED
   ssd1306_Init();
   ssd1306_Fill(Black);
@@ -155,13 +158,14 @@ int main(void)
 		  }
 
 		  char buf[32];
+		  int x = 50;
 		  // Print whole KHz
 		  sprintf(buf,"%5d",freq / 10);
-		  ssd1306_SetCursor(0, 16);
+		  ssd1306_SetCursor(x, 16);
 		  ssd1306_WriteString(buf, Font_11x18, White);
 		  // Print 100Hz increments
 		  sprintf(buf,".%d",freq % 10);
-		  ssd1306_SetCursor(55, 16);
+		  ssd1306_SetCursor(x + 55, 16);
 		  ssd1306_WriteString(buf, Font_11x18, White);
 
 		  ssd1306_UpdateScreen();
